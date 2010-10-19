@@ -1353,7 +1353,8 @@ function! <SID>MBESelectBuffer()
     let l:saveAutoUpdate = g:miniBufExplorerAutoUpdate
     let g:miniBufExplorerAutoUpdate = 0
     " Switch to the previous window
-    wincmd p
+    " wincmd p
+    call g:GoToEditWindow()
 
     " If we are in the buffer explorer or in a nonmodifiable buffer with
     " g:miniBufExplModSelTarget set then try another window (a few times)
