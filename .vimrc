@@ -52,6 +52,9 @@ import vim
 for p in sys.path:
     if os.path.isdir(p):
         vim.command(r"set path+=%s" % (p.replace(" ", r"\ ")))
+# for the omelette zc.buildout recipe
+if os.path.isdir('parts/omelette'):
+    vim.command(r"set path+=%s" % 'parts/omelette')
 EOF
 
 " some filetypes
