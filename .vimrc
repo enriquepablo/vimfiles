@@ -74,6 +74,8 @@ EOF
 command W w !sudo tee % >/dev/null
 
 " F keys mappings
+nnoremap          <F6> :FindFiles<Space>
+nnoremap          <F7> :GrepFiles<Space>
 nnoremap <silent> <F8> :NERDTreeToggle<CR>
 
 " NERDTree

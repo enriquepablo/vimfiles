@@ -5,7 +5,7 @@ import shutil
 
 def _find(files, dirname, fname, p):
     if p.search(fname):
-        files.append('*%s* in %s/%s' % (fname, dirname, fname))
+        files.append('*%s* in %s%s' % (fname, dirname, fname))
 
 def _grep(files, dirname, fname, p):
     file = '%s/%s' % (dirname, fname)
@@ -17,7 +17,7 @@ def _grep(files, dirname, fname, p):
     data = data.split('\n')
     for n, line in enumerate(data):
         if p.search(line):
-            files.append('*l-%d %s* in %s/%s' % (n+1, line, dirname, fname))
+            files.append('*l-%d %s* in %s%s' % (n+1, line, dirname, fname))
     fileToSearch.close()
 
 def _findfiles(arg, dirname, fnames):
@@ -36,11 +36,10 @@ def _findfiles(arg, dirname, fnames):
         a(files, dirname, fname, pattern)
 
 def findfiles(top, pattern, action):
-    files = []
+    global matches
     p = re.compile(pattern)
-    os.path.walk(top, _findfiles, (files, p, action))
-    files.reverse()
-    return files
+    os.path.walk(top, _findfiles, (matches, p, action))
+    matches.reverse()
 
 def rmfile(path):
     if path.endswith('/'):
@@ -50,4 +49,4 @@ def rmfile(path):
         os.mkdir('/tmp/vimrm/')
     shutil.move(path, '/tmp/vimrm/%s' % filename)
 
-
+matches = []

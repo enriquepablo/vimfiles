@@ -4052,6 +4052,105 @@ function! s:upDir(keepState)
     endif
 endfunction
 
+command! -n=? -complete=dir FindFiles :call s:FindFile('find', '<args>')
+command! -n=? -complete=dir GrepFiles :call s:FindFile('grep', '<args>')
+
+let s:pyconsole_vim_location = expand("<sfile>:h")
+
+"FUNCTION: s:FindFile(action,pattern) {{{2
+"find files or grep for strings
+"
+"Args:
+"action: 'grep' or 'find'
+"pattern: string to search for
+" FindFile() - find file recursively within current directory
+function! s:FindFile(action,pattern) " <<<
+	let ln = line(".")
+	let curfile = s:getPath(ln)
+    py import sys, vim
+    exe 'python sys.path.insert(0, r"'.s:pyconsole_vim_location.'")'
+    py import grepfind
+    exe 'python grepfind.findfiles("'.curfile.str({'format': 'Edit'}).'","'.a:pattern.'","'.a:action.'")'
+    "python grepfind.findfiles(curfile,pattern,action)
+    bel silent new output
+    setlocal noswapfile
+    setlocal buftype=nofile
+    setlocal bufhidden=delete
+    setlocal nobuflisted
+    setlocal foldcolumn=0
+	if exists("g:treeExplNoList")
+		setlocal nobuflisted
+	endif
+	if has('spell')
+		setlocal nospell
+	endif
+    nnoremap <buffer> <cr> :call <SID>Activate("win")<cr>
+    nnoremap <buffer> o    :call <SID>Activate("win")<cr>
+    nnoremap <buffer> O    :call <SID>Activate("cur")<cr>
+	nnoremap <buffer> t    :call <SID>Activate("tab")<cr>
+	nnoremap <buffer> <2-leftmouse> :call <SID>Activate("tab")<cr>
+    py output = vim.current.buffer
+    py for match in grepfind.matches: output[0:0] = [str(match).strip()]
+    " syntax highlighting
+    " if has("syntax") && exists("g:syntax_on") && !has("syntax_items")
+        syn match startline "^\*"
+        syn match boundary "\* in "
+        syn match lineno "l-\d\+ "
+		syn match pmatch  #\*.*\*# contains=startline,lineno,boundary
+        syn match fpath  #/.*$#
+        hi def link startline Ignore
+        hi def link boundary Ignore
+        hi def link lineno Normal
+		hi def link pmatch Title
+        hi def link fpath Directory
+    " endif
+endfunction " >>>
+
+function! s:RMFile () " <<<
+	let ln = line(".")
+	let curfile = s:GetAbsPath2(ln, 0)
+    py import sys
+    exe 'python sys.path.insert(0, r"'.s:pyconsole_vim_location.'")'
+    py import grepfind
+    exe 'py grepfind.rmfile("'.curfile.'")'
+    call s:RefreshDir()
+endfunction " >>>
+
+"" Activate() - open files
+function! s:Activate(how) " <<<
+
+    let ln = line(".")
+    let l = getline(ln)
+
+	" on top, no folds, or not on tree
+	if l !~ '^[-| `*]'
+		return
+	endif
+
+    let toline = '0'
+    let curfile = ''
+    if l =~ '^\*l-\(\d\+\)\s'
+        let toline = l
+        let toline = substitute(toline, '^\*l-\(\d\+\)\s.*$', '\1', '')
+        let curfile = l
+        let curfile = substitute(curfile, '^\*l-\d\+.*\*\sin\s\(.\+\)$', '\1', '')
+    endif
+
+    let f = escape (curfile, " `|\"~'#")
+    call g:GoToEditWindow()
+    if a:how == "tab"
+        exec ("tabedit " . f)
+    elseif a:how == "cur"
+        exec ("tabedit " . f)
+    else
+        exec ("edit " . f)
+    endif
+    if toline != '0'
+       py import vim
+       exe 'py vim.current.window.cursor = ('.toline.',0)'
+    endif
+endfunction " >>>
+
 
 "reset &cpo back to users setting
 let &cpo = s:old_cpo
