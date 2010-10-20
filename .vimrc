@@ -69,3 +69,10 @@ EOF
 
 " type :W if you need to write as su
 command W w !sudo tee % >/dev/null
+
+" F keys mappings
+nnoremap <silent> <F8> :NERDTreeToggle<CR>
+
+" NERDTree
+let g:NERDTreeIgnore=['\.swp$','\.pyc$','\.pyo$']
+
