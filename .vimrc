@@ -1,5 +1,4 @@
 set encoding=utf-8
-set guifont=Inconsolata\ 11
 syn on
 filetype on
 filetype plugin on
@@ -18,9 +17,15 @@ set browsedir=current
 set gdefault
 
 " GUI
+set guifont=Inconsolata\ 10
 set guioptions-=T
 set guioptions-=m
 set guitablabel=%M\ %t
+if has("gui_running")
+    " GUI is running or is about to start.
+    " Maximize gvim window.
+    set lines=999 columns=999
+endif
 
 "" Statusbar and Linenumbers
 set cmdheight=2
