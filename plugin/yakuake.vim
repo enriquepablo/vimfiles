@@ -1,4 +1,14 @@
 
+" yakuake integration with gvim
+"
+" you need to have yakuake installed
+"
+" The OpenYakuake command will open a yakuake session on your cwd.
+" On that session you will have an 'e' alias that, given a file path,
+" will open the given file in the gvim instance from which yakuake was called and
+" close the yakuake session.
+"
+" I can't find a way to format it prettier, sorry :(
 
 function! s:OpenYakuake()
     let curdir = getcwd()
