@@ -4117,7 +4117,7 @@ function! s:RMFile () " <<<
 endfunction " >>>
 
 "" Activate() - open files
-function! s:Activate(how) " <<<
+function! g:Activate(how) " <<<
 
     let ln = line(".")
     let l = getline(ln)
