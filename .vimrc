@@ -2,6 +2,7 @@ set encoding=utf-8
 syn on
 filetype on
 filetype plugin on
+filetype plugin indent on
 set expandtab
 set tabstop=4
 set softtabstop=4
