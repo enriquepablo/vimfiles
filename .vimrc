@@ -83,6 +83,7 @@ command W w !sudo tee % >/dev/null
 nnoremap          <F6> :FindFiles<Space>
 nnoremap          <F7> :GrepFiles<Space>
 nnoremap <silent> <F8> :NERDTreeToggle<CR>
+nnoremap <silent> <F9> :Yakuake<CR>
 
 " NERDTree
 let g:NERDTreeIgnore=['\.swp$','\.pyc$','\.pyo$']
