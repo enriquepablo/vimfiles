@@ -29,7 +29,7 @@ if has("gui_running")
 endif
 
 "" Statusbar and Linenumbers
-set cmdheight=2
+set cmdheight=1
 set laststatus=2
 set statusline=[%l,%c\ %P%M]\ %f\ %r%h%w
 
@@ -87,4 +87,21 @@ nnoremap <silent> <F9> :Yakuake<CR>
 
 " NERDTree
 let g:NERDTreeIgnore=['\.swp$','\.pyc$','\.pyo$']
+
+" omnicomplete
+autocmd FileType python set omnifunc=pythoncomplete#Complete
+autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
+autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
+autocmd FileType css set omnifunc=csscomplete#CompleteCSS
+autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
+
+" OmniCopletion
+"
+" SuperTab
+let g:SuperTabDefaultCompletionType = "context"
+"let g:SuperTabCompletionContexts = ['s:ContextText', 's:ContextDiscover']
+"let g:SuperTabContextTextOmniPrecedence = ['&omnifunc', '&completefunc']
+"let g:SuperTabContextDiscoverDiscovery =
+"        \ ["&completefunc:<c-x><c-u>", "&omnifunc:<c-x><c-o>"]
+"
 
