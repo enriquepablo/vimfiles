@@ -92,12 +92,13 @@ endfunction
 
 " Python Preamble {{{
 python << EOF
-import httplib2, re, urlparse
+import httplib, re, urlparse
 import xml.dom.minidom as minidom
 import vim, sys
 
 BLOGGER_POSTS = []
 BLOGID = ''
+BLOG_HOST = 'nl-project.blogspot.com'
 
 vim.command("let path = expand('<sfile>:p:h')")
 PYPATH = vim.eval('path')
@@ -118,7 +119,7 @@ def GetPostsByLabel(labels):  #{{{
 
     BLOGID = _getBlogID(blogURI)
 
-    h = httplib2.Http()
+    h = httplib.HTTPConnection(BLOG_HOST)
 
     if not len(labels):
         print "Specify labels to query..."
@@ -136,10 +137,14 @@ def GetPostsByLabel(labels):  #{{{
     auth = authenticate(h)
     if auth:
         headers = {'Content-Type': 'application/atom+xml', 'Authorization': 'GoogleLogin auth=%s' % auth.strip()}
-        response, content = h.request(uri, "GET", headers=headers)
+        h.request("GET", uri, '', headers)
+        response = h.getresponse()
+        content = response.read()
     else:
-        response, content = h.request(uri, "GET")
-    if response['status'] == '200':
+        h.request("GET", uri)
+        response = h.getresponse()
+        content = response.read()
+    if response.status == 200:
          postsFromXML(content)
     else:
         print "Error getting post feed."
@@ -170,7 +175,7 @@ def GetPosts(num=5):  #{{{
 
     BLOGID = _getBlogID(blogURI)
 
-    h = httplib2.Http()
+    h = httplib.HTTPConnection(BLOG_HOST)
 
     BLOGGER_POSTS = []
 
@@ -181,10 +186,14 @@ def GetPosts(num=5):  #{{{
     auth = authenticate(h)
     if auth:
         headers = {'Content-Type': 'application/atom+xml', 'Authorization': 'GoogleLogin auth=%s' % auth.strip()}
-        response, content = h.request(uri, "GET", headers=headers)
+        h.request("GET", uri, '', headers)
+        response = h.getresponse()
+        content = response.read()
     else:
-        response, content = h.request(uri, "GET")
-    if response['status'] == '200':
+        h.request("GET", uri)
+        response = h.getresponse()
+        content = response.read()
+    if response.status == 200:
          postsFromXML(content)
     else:
         print "Error getting post feed."
@@ -193,14 +202,14 @@ def GetPosts(num=5):  #{{{
         print "You have no blog posts to index."
         return
 
-    if num:
-        if int(num) > len(BLOGGER_POSTS):
-            num = len(BLOGGER_POSTS)
-        elif int(num) < 1:
-            print "Invalid post number."
-            return
-    else:
+    if not num:
         num = 5
+    if int(num) > len(BLOGGER_POSTS):
+        num = len(BLOGGER_POSTS)
+    elif int(num) < 1:
+        print "Invalid post number."
+        return
+    print "0: New draft"
     for i in range(num):
         if BLOGGER_POSTS[i]['draft']:
             print str(i+1) + ':', BLOGGER_POSTS[i]['title'] + '        **DRAFT**'
@@ -209,8 +218,33 @@ def GetPosts(num=5):  #{{{
     vim.command('let choice = input("Enter number or ENTER: ")')
     pychoice = vim.eval('choice')
     if pychoice.isdigit():
-        EditPost(pychoice)
+        if pychoice == '0':
+            CreatePost()
+        else:
+            EditPost(pychoice)
 # }}}
+
+def CreatePost(): # 
+
+    # Don't overwrite any currently open buffer.. TODO:What's the best way?
+    tmp_blog_file = vim.eval("tempname() . '.blogger'")
+    if vim.current.buffer.name: # Does this buffer have a name? 
+        if not vim.current.buffer.name.endswith(".blogger"):
+            vim.command('e! %s' % tmp_blog_file)
+    else: # buffer has no name, just open the tmp one for now...
+        vim.command('e! %s' % tmp_blog_file)
+
+    vim.command('set foldmethod=marker')
+    vim.command('set nomodified')
+    vim.current.buffer[:] = []
+    vim.current.buffer[0] = '@@EDIT0@@'
+    vim.current.buffer.append('title')
+    vim.current.buffer.append('')
+    vim.current.buffer.append('body')
+    vim.current.buffer.append('@@LABELS@@ ')
+    vim.command('set nomodified')
+    vim.command('nmap j gj')
+    vim.command('nmap k gk')
 
 def EditPost(num): # 
     global BLOGGER_POSTS
@@ -234,7 +268,7 @@ def EditPost(num): #
     vim.current.buffer[:] = []
     vim.current.buffer[0] = '@@EDIT%s@@' % postnum
     title = BLOGGER_POSTS[postnum]['title']
-    vim.current.buffer.append(str(title))
+    vim.current.buffer.append(title.encode('utf8'))
     vim.current.buffer.append('')
     if not (vim.eval("g:Blog_Use_Markdown") == '0'):
         use_markdown = True
@@ -261,7 +295,7 @@ def Post(draft=False):  # {{{
     global BLOGGER_POSTS
     global BLOGID
 
-    h = httplib2.Http()
+    h = httplib.HTTPConnection(BLOG_HOST)
 
     try:
         blogURI = vim.eval("g:Blog_URI")
@@ -335,24 +369,28 @@ def Post(draft=False):  # {{{
     auth = authenticate(h)
     if auth:
         headers = {'Content-Type': 'application/atom+xml', 'Authorization': 'GoogleLogin auth=%s' % auth.strip()}
-        response, content = h.request(uri, 'POST', body=entry, headers=headers)
+        h.request("POST", uri, entry, headers)
+        response = h.getresponse()
+        content = response.read()
 
         # follow redirects
-        while response['status'] == '302':
-            response, content = h.request(response['location'], 'POST', body=entry, headers=headers)
+        while response['status'] == 302:
+            h.request('POST', response['location'], entry, headers)
+            response = h.getresponse()
+            content = response.read()
 
-        if response['status'] == '201':
+        if response.status == 201:
             post = postsFromXML(content, True)
             vim.current.buffer[0:0] = [ '@@EDIT%s@@' % post ]
             print "Post successful!"
         else:
-            print "Post failed: %s %s" % (response['status'], content)
+            print "Post failed: %s %s" % (response.status, content)
     else:
         print "Authorization failed."
 # }}}
 
 def Delete(): # {{{
-    h = httplib2.Http()
+    h = httplib.HTTPConnection(BLOG_HOST)
     global BLOGGER_POSTS
 
     postnum = None
@@ -371,36 +409,44 @@ def Delete(): # {{{
         auth = authenticate(h)
         if auth:
             headers = {'Content-Type': 'application/atom+xml', 'Authorization': 'GoogleLogin auth=%s' % auth.strip()}
-            response, content = h.request(post['edit_url'], 'DELETE', headers=headers)
+            h.request('DELETE', post['edit_url'], '', headers)
+            response = h.getresponse()
+            content = response.read()
 
             # follow redirects
-            while response['status'] == '302':
-                response, content = h.request(response['location'], 'DELETE', headers=headers)
+            while response.status == 302:
+                h.request('DELETE', response.getheader('location'), '', headers)
+                response = h.getresponse()
+                content = response.read()
 
-            if response['status'] == '200':
+            if response.status == 200:
                 print "Entry successfully deleted."
             else:
-                print "Deletion failed: %s %s" % (response['status'], content)
+                print "Deletion failed: %s %s" % (response.status, content)
         else:
             print "Authorization failed."
 # }}}
 
 def updatePost(uri, post): # {{{
-    h = httplib2.Http()
+    h = httplib.HTTPConnection(BLOG_HOST)
 
     auth = authenticate(h)
     if auth:
         headers = {'Content-Type': 'application/atom+xml', 'Authorization': 'GoogleLogin auth=%s' % auth.strip()}
-        response, content = h.request(uri, 'PUT', body=post, headers=headers)
+        h.request("PUT", uri, post, headers)
+        response = h.getresponse()
+        content = response.read()
 
         # follow redirects
-        while response['status'] == '302':
-            response, content = h.request(response['location'], 'PUT', body=post, headers=headers)
+        while response.status == 302:
+            h.request('PUT', response.getheader('location'), post, headers)
+            response = h.getresponse()
+            content = response.read()
 
-        if response['status'] == '200':
+        if response.status == 200:
             print "Entry successfully updated."
         else:
-            print "Update failed: %s %s" % (response['status'], content)
+            print "Update failed: %s %s" % (response.status, content)
     else:
         print "Authorization failed."
 # }}}
@@ -422,9 +468,11 @@ def authenticate(h):   #{{{
 
     auth_uri = 'https://www.google.com/accounts/ClientLogin'
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    myrequest = "Email=%s&Passwd=%s&service=blogger&service=dcraven-Vim-Blogger-0.1" % (account, password)
-    response, content = h.request(auth_uri, 'POST', body=myrequest, headers=headers)
-    if response['status'] == '200':
+    myrequest = "Email=%s&Passwd=%s&service=blogger&source=eperez-VimBlogger-1&accountType=GOOGLE" % (account, password)
+    h.request('POST', auth_uri, myrequest, headers)
+    response = h.getresponse()
+    content = response.read()
+    if response.status == 200:
         GOOGLE_AUTH = re.search('Auth=(\S*)', content).group(1)
         return GOOGLE_AUTH
     else:
@@ -537,8 +585,10 @@ def _getBlogID(uri):#{{{
     if BLOGID:
         return BLOGID
     else:
-        con = httplib2.Http()
-        response, content = con.request(uri, 'GET')
+        con = httplib.HTTPConnection(BLOG_HOST)
+        con.request('GET', uri)
+        response = con.getresponse()
+        content = response.read()
         match = re.search('blogID=(\d*)', content)
         if match:
             return match.group(1)
