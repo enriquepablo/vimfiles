@@ -8,9 +8,9 @@ def _find(files, dirname, fname, p):
         files.append('*%s* in %s%s' % (fname, dirname, fname))
 
 def _grep(files, dirname, fname, p):
-    file = '%s/%s' % (dirname, fname)
+    f = '%s/%s' % (dirname, fname)
     try:
-        fileToSearch = open( file, 'r' )
+        fileToSearch = open( f, 'r' )
     except IOError:
         return
     data = fileToSearch.read()
