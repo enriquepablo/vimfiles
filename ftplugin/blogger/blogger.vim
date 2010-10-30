@@ -20,6 +20,7 @@ endif
 "}}}
 
 " Setup Vim-BloggerBeta Custom Commands"{{{
+:command! Blogs :call BloggerBlogs()
 :command! BlogPost :call BloggerPost()
 :command! BlogDraft :call BloggerDraft()
 :command! -nargs=? BlogIndex :call BloggerIndex("<args>")
@@ -33,6 +34,7 @@ nmap <leader>bd :BlogDelete<CR>
 "}}}
 
 " Vim Functions (These simply call their Python counterparts below)"{{{
+
 function! BloggerDelete(args)
 python << EOF
 Delete()
@@ -67,6 +69,13 @@ GetPosts(num)
 EOF
 endfunction
 
+function! BloggerBlogs()
+python << EOF
+import vim
+GetBlogs()
+EOF
+endfunction
+
 function! BloggerIndexLabel(args)
 python << EOF
 import vim
@@ -96,16 +105,58 @@ import httplib, re, urlparse
 import xml.dom.minidom as minidom
 import vim, sys
 
+BLOGS = {}
 BLOGGER_POSTS = []
 BLOGID = ''
-BLOG_HOST = 'nl-project.blogspot.com'
+BLOG_HOST = 'www.blogspot.com'
 
 vim.command("let path = expand('<sfile>:p:h')")
 PYPATH = vim.eval('path')
 sys.path += [r'%s' % PYPATH]
+import re
 import html2text
 import markdown
+
+blogid_re = re.compile(r'^http://www.blogger.com/feeds/[^/]+/blogs/([^/]+)')
 #}}}
+
+def GetBlogs():  #{{{
+    global BLOGID
+
+    h = httplib.HTTPConnection(BLOG_HOST)
+
+    uri = 'http://www.blogger.com/feeds/default/blogs'
+
+    print "Retrieving blogs..."
+    auth = authenticate(h)
+    if auth:
+        headers = {'Content-Type': 'application/atom+xml', 'Authorization': 'GoogleLogin auth=%s' % auth.strip()}
+        h.request("GET", uri, '', headers)
+        response = h.getresponse()
+        content = response.read()
+    else:
+        h.request("GET", uri)
+        response = h.getresponse()
+        content = response.read()
+    if response.status == 200:
+         blogsFromXML(content)
+    else:
+        print "Error getting blog feed."
+
+    if not len(BLOGS):
+        print "You have no blogs to index."
+        return
+
+    for blog in BLOGS.values():
+        print '%s: %s' % (blog['num'], blog['title'])
+    vim.command('let choice = input("Enter number or ENTER: ")')
+    pychoice = vim.eval('choice')
+    if pychoice.isdigit():
+        blog = BLOGS[pychoice]
+        BLOGID = blog['id']
+        GetPosts()
+# }}}
+
 
 def GetPostsByLabel(labels):  #{{{
     global BLOGGER_POSTS
@@ -537,33 +588,52 @@ def getCategoriesXML(post):  #{{{
     return cat_str
 #}}}
 
+def _text_from_child(elem, chtag):
+        node = elem.getElementsByTagName(chtag)[0]
+        return _getTextDataFromNode(node)
+
+def _attr_from_child(elem, chtag, attr):
+        children = elem.getElementsByTagName(chtag)
+        if children:
+            return children[0].getAttribute(attr)
+        return ''
+
+def _attr_from_children(elem, chtag, attr):
+        attrs = []
+        for node in elem.getElementsByTagName(chtag):
+            value = node.getAttribute(attr).strip()
+            if value:
+                attrs.append(value)
+        return attrs
+
+def blogsFromXML(content, new=False):#{{{
+    global BLOGS
+            
+    doc = minidom.parseString(content)
+    for n,entryNode in enumerate(doc.getElementsByTagName('entry')):
+        blog = {'title': _text_from_child(entryNode, 'title')}
+        for node in entryNode.getElementsByTagName('link'):
+            if node.getAttribute('rel') == 'self':
+                match = blogid_re.match(node.getAttribute('href'))
+                if match:
+                    blog['id'] = match.group(1)
+        blog['num'] = str(n)
+        BLOGS[str(n)] = blog
+#}}}
+
 def postsFromXML(content, new=False):#{{{
     global BLOGGER_POSTS
-
+            
     doc = minidom.parseString(content)
     for entryNode in doc.getElementsByTagName('entry'):
-        post = {}
+        post = {'title': _text_from_child(entryNode, 'title')}
         for node in entryNode.getElementsByTagName('link'):
             post[node.getAttribute('rel')+"_url"] = node.getAttribute('href')
-        titleNode = entryNode.getElementsByTagName('title')[0]
-        post['title'] = _getTextDataFromNode(titleNode)
-        contentNode = entryNode.getElementsByTagName('content')[0]
-        post['content'] = _getTextDataFromNode(contentNode)
-        idNode = entryNode.getElementsByTagName('id')[0]
-        post['id'] = _getTextDataFromNode(idNode)
-        updatedNode = entryNode.getElementsByTagName('updated')[0]
-        post['updated'] = _getTextDataFromNode(updatedNode)
-        categoryNodes = entryNode.getElementsByTagName('category')
-        categories = []
-        for node in categoryNodes:
-            label = node.getAttribute('term').strip()
-            if not label == '':
-                categories.append(label)
-        post['categories'] = categories
-        if entryNode.getElementsByTagName('app:draft'):
-            post['draft'] = True
-        else:
-            post['draft'] = False
+        post['content'] = _text_from_child(entryNode, 'content')
+        post['id'] = _text_from_child(entryNode, 'id')
+        post['updated'] = _text_from_child(entryNode, 'updated')
+        post['categories'] = _attr_from_children(entryNode, 'category', 'term')
+        post['draft'] = bool(entryNode.getElementsByTagName('app:draft'))
         if new:
             BLOGGER_POSTS.insert(0, post)
             return 0
