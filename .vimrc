@@ -80,10 +80,11 @@ EOF
 command W w !sudo tee % >/dev/null
 
 " F keys mappings
-nnoremap          <F6> :FindFiles<Space>
-nnoremap          <F7> :GrepFiles<Space>
-nnoremap <silent> <F8> :NERDTreeToggle<CR>
-nnoremap <silent> <F9> :Yakuake<CR>
+nnoremap          <F6>  :FindFiles<Space>
+nnoremap          <F7>  :GrepFiles<Space>
+nnoremap <silent> <F8>  :NERDTreeToggle<CR>
+nnoremap <silent> <F9>  :Yakuake<CR>
+nnoremap <silent> <F10> :Blog<CR>
 
 " NERDTree
 let g:NERDTreeIgnore=['\.swp$','\.pyc$','\.pyo$']
@@ -104,4 +105,13 @@ let g:SuperTabDefaultCompletionType = "context"
 "let g:SuperTabContextDiscoverDiscovery =
 "        \ ["&completefunc:<c-x><c-u>", "&omnifunc:<c-x><c-o>"]
 "
+
+" Blogger
+function! Blogger()
+    cd ~/.blog
+    set ft=blogger
+    Blogs
+endfunction
+
+:command! Blog :call Blogger()
 
