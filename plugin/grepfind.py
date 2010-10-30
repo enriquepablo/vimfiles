@@ -1,13 +1,15 @@
 import os
 import re
 import shutil
+import vim
 
+matches = []
 
-def _find(files, dirname, fname, p):
+def _find(dirname, fname, p):
     if p.search(fname):
-        files.append('*%s* in %s%s' % (fname, dirname, fname))
+        matches.append('*%s* in %s/%s' % (fname, dirname, fname))
 
-def _grep(files, dirname, fname, p):
+def _grep(dirname, fname, p):
     f = '%s/%s' % (dirname, fname)
     try:
         fileToSearch = open( f, 'r' )
@@ -17,28 +19,27 @@ def _grep(files, dirname, fname, p):
     data = data.split('\n')
     for n, line in enumerate(data):
         if p.search(line):
-            files.append('*l-%d %s* in %s%s' % (n+1, line, dirname, fname))
+            matches.append('*l-%d %s* in %s/%s' % (n+1, line, dirname, fname))
     fileToSearch.close()
 
 def _findfiles(arg, dirname, fnames):
-    if '.svn' in dirname:
-        return
-    files   = arg[0]
-    pattern = arg[1]
-    action  = arg[2]
+    if '.svn' in fnames:
+        fnames.remove('.svn')
+    pattern, action  = arg
     a = action=='find' and _find or _grep
+    badfiles = vim.eval("g:NERDTreeIgnore")
     for fname in fnames:
-        if fname.endswith('.pyc') or \
-            fname.endswith('~') or \
-            fname.endswith('.pyo') or \
-            fname == 'tags':
-            continue
-        a(files, dirname, fname, pattern)
+        good = True
+        for bad in badfiles:
+            if fname.endswith(bad):
+                good = False
+                break
+        if good:
+            a(dirname, fname, pattern)
 
 def findfiles(top, pattern, action):
-    global matches
     p = re.compile(pattern)
-    os.path.walk(top, _findfiles, (matches, p, action))
+    os.path.walk(top, _findfiles, (p, action))
     matches.reverse()
 
 def rmfile(path):
@@ -49,4 +50,3 @@ def rmfile(path):
         os.mkdir('/tmp/vimrm/')
     shutil.move(path, '/tmp/vimrm/%s' % filename)
 
-matches = []
