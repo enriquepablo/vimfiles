@@ -4052,8 +4052,8 @@ function! s:upDir(keepState)
     endif
 endfunction
 
-command! -n=? -complete=dir FindFiles :call s:FindFile('find', '<args>')
-command! -n=? -complete=dir GrepFiles :call s:FindFile('grep', '<args>')
+command! -nargs=+ -complete=dir FindFiles :call s:FindFile('find', <q-args>)
+command! -nargs=+ -complete=dir GrepFiles :call s:FindFile('grep', <q-args>)
 
 let s:pyconsole_vim_location = expand("<sfile>:h")
 
@@ -4117,7 +4117,7 @@ function! s:RMFile () " <<<
 endfunction " >>>
 
 "" Activate() - open files
-function! g:Activate(how) " <<<
+function! s:Activate(how) " <<<
 
     let ln = line(".")
     let l = getline(ln)
