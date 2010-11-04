@@ -30,7 +30,7 @@ syn region pythonString		start=+'+ skip=+\\\\\|\\'\|\\$+ excludenl end=+'+ end=+
 syn region pythonString		start=+"+ skip=+\\\\\|\\"\|\\$+ excludenl end=+"+ end=+$+ keepend contains=pythonEscape,pythonEscapeError,@Spell
 syn region pythonString		start=+"""+ end=+"""+ keepend contains=pythonEscape,pythonEscapeError,pythonDocTest2,pythonSpaceError,@Spell
 syn region pythonString		start=+'''+ end=+'''+ keepend contains=pythonEscape,pythonEscapeError,pythonDocTest,pythonSpaceError,@Spell
-syn region pythonString	start=+^[a-zA-Z]+ skip=+\\\\\|\\$+ excludenl end=+$+ end=+$+ keepend contains=pythonEscape,pythonUniEscape,pythonEscapeError,pythonUniEscapeError,@Spell
+syn region rest_code	start=+^[a-zA-Z]+ end=+$+ end=+$+ keepend contains=@Rst
 
 syn match  pythonEscape		+\\[abfnrtv'"\\]+ display contained
 syn match  pythonEscape		"\\\o\o\=\o\=" display contained
@@ -99,3 +99,4 @@ hi link doctest_note Comment
 hi link pythonBuiltinObj	Structure
 hi link pythonBuiltinFunc	Function
 
+syn include @Rst syntax/rest.vim
