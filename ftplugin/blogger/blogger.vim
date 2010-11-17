@@ -114,8 +114,6 @@ vim.command("let path = expand('<sfile>:p:h')")
 PYPATH = vim.eval('path')
 sys.path += [r'%s' % PYPATH]
 import re
-import html2text
-import markdown
 
 blogid_re = re.compile(r'^http://www.blogger.com/feeds/[^/]+/blogs/([^/]+)')
 #}}}
@@ -321,14 +319,8 @@ def EditPost(num): #
     title = BLOGGER_POSTS[postnum]['title']
     vim.current.buffer.append(title.encode('utf8'))
     vim.current.buffer.append('')
-    if not (vim.eval("g:Blog_Use_Markdown") == '0'):
-        use_markdown = True
-    else:
-        use_markdown = False
-    if use_markdown:
-        content = html2text.html2text(BLOGGER_POSTS[postnum]['content'])
-    else:
-        content = BLOGGER_POSTS[postnum]['content']
+    # XXX ReST: transform content
+    content = BLOGGER_POSTS[postnum]['content']
     for line in str(content).split('\n'):
         vim.current.buffer.append(line)
     cat_str = '@@LABELS@@ ' + ', '.join(BLOGGER_POSTS[postnum]['categories'])
@@ -367,35 +359,23 @@ def Post(draft=False):  # {{{
 
     postnum = None
     match = re.search('^@@EDIT(\d*)@@$', vim.current.buffer[0])
-    if not (vim.eval("g:Blog_Use_Markdown") == '0'):
-        use_markdown = True
-    else:
-        use_markdown = False
     if match:
         postnum = int(match.group(1))
         subject = vim.current.buffer[1]
         if has_labels:
-            if use_markdown:
-                body = markdown.markdown('\n'.join(vim.current.buffer[3:-1]))
-            else:
-                body = '\n'.join(vim.current.buffer[3:-1])
+            # XXX Use ReST on body
+            body = '\n'.join(vim.current.buffer[3:-1])
         else:
-            if use_markdown:
-                body = markdown.markdown('\n'.join(vim.current.buffer[3:]))
-            else:
-                body = '\n'.join(vim.current.buffer[3:])
+            # XXX Use ReST on body
+            body = '\n'.join(vim.current.buffer[3:])
     else:
         subject = vim.current.buffer[0]
         if has_labels:
-            if use_markdown:
-                body = markdown.markdown('\n'.join(vim.current.buffer[2:-1]))
-            else:
-                body = '\n'.join(vim.current.buffer[2:-1])
+            # XXX Use ReST on body
+            body = '\n'.join(vim.current.buffer[2:-1])
         else:
-            if use_markdown:
-                body = markdown.markdown('\n'.join(vim.current.buffer[2:]))
-            else:
-                body = '\n'.join(vim.current.buffer[2:])
+            # XXX Use ReST on body
+            body = '\n'.join(vim.current.buffer[2:])
 
     if not postnum == None:
         # it's an update
