@@ -39,10 +39,10 @@ helptags ~/.vim/doc
 set hidden
 
 " map change window size
-:noremap <silent> <M-Right> <C-W>>
-:noremap <silent> <M-Left> <C-W><
-:noremap <silent> <M-Up> <C-W>+
-:noremap <silent> <M-Down> <C-W>-
+noremap <silent> <S-Right> <C-W>>
+noremap <silent> <S-Left> <C-W><
+noremap <silent> <S-Up> <C-W>+
+noremap <silent> <S-Down> <C-W>-
 
 " replace semicolon for substitution
 :noremap ; :s///g<Left><Left><Left>
@@ -64,17 +64,18 @@ if os.path.isdir('parts/omelette'):
 EOF
 
 " some filetypes
-:au BufRead,BufNewFile *.cpy,*.vpy   set ft=python
-:au BufRead,BufNewFile *.pt,*.cpt    set ft=xml
-:au BufRead,BufNewFile *.zcml        set ft=xml
-:au BufRead,BufNewFile *.wiki        set ft=creole
+au BufRead,BufNewFile *.cpy,*.vpy   set ft=python
+au BufRead,BufNewFile *.pt,*.cpt    set ft=xml
+au BufRead,BufNewFile *.zcml        set ft=xml
+au BufRead,BufNewFile *.wiki        set ft=creole
+au BufRead,BufNewFile *.rst         set ft=rest
 
 " folding
-:set foldnestmax=2
-:set foldmethod=indent
-:highlight Folded guibg=SteelBlue guifg=goldenrod1
-:highlight Folded ctermbg=grey ctermfg=yellow
-:highlight FoldColumn guibg=grey guifg=yellow
+set foldnestmax=2
+set foldmethod=indent
+highlight Folded guibg=SteelBlue guifg=goldenrod1
+highlight Folded ctermbg=grey ctermfg=yellow
+highlight FoldColumn guibg=grey guifg=yellow
 
 " type :W if you need to write as su
 command W w !sudo tee % >/dev/null
@@ -113,5 +114,5 @@ function! Blogger()
     Blogs
 endfunction
 
-:command! Blog :call Blogger()
+command! Blog :call Blogger()
 
