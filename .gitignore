@@ -2,3 +2,5 @@
 *.pyo
 *.swp
 doc/tags
+passwds.vim
+.VimballRecord
