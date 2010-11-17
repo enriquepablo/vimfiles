@@ -41,6 +41,9 @@ def findfiles(top, pattern, action):
     p = re.compile(pattern)
     os.path.walk(top, _findfiles, (p, action))
     matches.reverse()
+    num = len(matches)
+    matches.append('')
+    matches.append('** %d matches found **' % num)
 
 def rmfile(path):
     if path.endswith('/'):
