@@ -4088,22 +4088,27 @@ function! s:FindFile(action,pattern) " <<<
     nnoremap <buffer> o    :call <SID>Activate("win")<cr>
     nnoremap <buffer> O    :call <SID>Activate("cur")<cr>
 	nnoremap <buffer> t    :call <SID>Activate("tab")<cr>
-	nnoremap <buffer> <2-leftmouse> :call <SID>Activate("tab")<cr>
+	nnoremap <buffer> <2-leftmouse> :call <SID>Activate("win")<cr>
     py output = vim.current.buffer
     py for match in grepfind.matches: output[0:0] = [str(match).strip()]
     " syntax highlighting
     " if has("syntax") && exists("g:syntax_on") && !has("syntax_items")
+        syn match header "^\*\*.*\*\*$"
         syn match startline "^\*"
         syn match boundary "\* in "
         syn match lineno "l-\d\+ "
-		syn match pmatch  #\*.*\*# contains=startline,lineno,boundary
+		syn match pmatch  #\*.*\*# contains=@Py,startline,lineno,boundary
         syn match fpath  #/.*$#
+        hi def link header Title
         hi def link startline Ignore
         hi def link boundary Ignore
         hi def link lineno Normal
-		hi def link pmatch Title
+		" hi def link pmatch Title
+        syn include @Py syntax/python.vim
         hi def link fpath Directory
     " endif
+    normal! dd
+    normal! gg
 endfunction " >>>
 
 function! s:RMFile () " <<<
@@ -4148,6 +4153,7 @@ function! s:Activate(how) " <<<
     if toline != '0'
        py import vim
        exe 'py vim.current.window.cursor = ('.toline.',0)'
+       normal! zO
     endif
 endfunction " >>>
 
