@@ -1,3 +1,11 @@
+""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""
+""""""" DO NOT USE """""""""""""
+"" Danger of damaging your blogger account
+"" Under development
+""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""
+
 " Vim-BloggerBeta Preamble"{{{
 " Make sure the Vim was compiled with +python before loading the script...
 if !has("python")
