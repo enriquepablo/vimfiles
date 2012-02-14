@@ -4,28 +4,29 @@ filetype on
 filetype plugin on
 filetype plugin indent on
 set expandtab
-set tabstop=4
-set softtabstop=4
-set shiftwidth=4
+set tabstop=2
+set softtabstop=2
+set shiftwidth=2
 set smartcase
 set number
 set noequalalways
 set smartindent
 set backspace=indent,start
 set browsedir=current
+set foldmethod=manual
 
 " make :s substitute all matches in a line
-set gdefault
+" set gdefault
 
 " GUI
-set guifont=Inconsolata\ 10
+set guifont=Inconsolata\ 11
 set guioptions-=T
 set guioptions-=m
 set guitablabel=%M\ %t
 if has("gui_running")
     " GUI is running or is about to start.
     " Maximize gvim window.
-    set lines=999 columns=999
+    set lines=40 columns=200
 endif
 
 "" Statusbar and Linenumbers
@@ -44,24 +45,12 @@ noremap <silent> <S-Left> <C-W><
 noremap <silent> <S-Up> <C-W>+
 noremap <silent> <S-Down> <C-W>-
 
+" map bn & bp
+noremap <M-Right> :bn<CR>
+noremap <M-Left> :bp<CR>
+
 " replace semicolon for substitution
 :noremap ; :s///g<Left><Left><Left>
-
-" With this snippet you will be able to go to your import
-" statements and hit ‘gf’ on one of them and it’ll jump you to that file.
-" from http://blog.sontek.net/2008/05/11/python-with-a-modular-ide-vim/
-
-python << EOF
-import os
-import sys
-import vim
-for p in sys.path:
-    if os.path.isdir(p):
-        vim.command(r"set path+=%s" % (p.replace(" ", r"\ ")))
-# for the omelette zc.buildout recipe
-if os.path.isdir('parts/omelette'):
-    vim.command(r"set path+=%s" % 'parts/omelette')
-EOF
 
 " some filetypes
 au BufRead,BufNewFile *.cpy,*.vpy   set ft=python
@@ -69,13 +58,6 @@ au BufRead,BufNewFile *.pt,*.cpt    set ft=xml
 au BufRead,BufNewFile *.zcml        set ft=xml
 au BufRead,BufNewFile *.wiki        set ft=creole
 au BufRead,BufNewFile *.rst         set ft=rest
-
-" folding
-set foldnestmax=2
-set foldmethod=indent
-highlight Folded guibg=SteelBlue guifg=goldenrod1
-highlight Folded ctermbg=grey ctermfg=yellow
-highlight FoldColumn guibg=grey guifg=yellow
 
 " type :W if you need to write as su
 command W w !sudo tee % >/dev/null
@@ -106,13 +88,3 @@ let g:SuperTabDefaultCompletionType = "context"
 "let g:SuperTabContextDiscoverDiscovery =
 "        \ ["&completefunc:<c-x><c-u>", "&omnifunc:<c-x><c-o>"]
 "
-
-" Blogger
-function! Blogger()
-    cd ~/.blog
-    set ft=blogger
-    Blogs
-endfunction
-
-command! Blog :call Blogger()
-

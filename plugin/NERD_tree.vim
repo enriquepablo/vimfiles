@@ -4067,6 +4067,12 @@ let s:pyconsole_vim_location = expand("<sfile>:h")
 function! s:FindFile(action,pattern) " <<<
 	let ln = line(".")
 	let curfile = s:getPath(ln)
+    if a:action == "grep"
+        call g:GoToEditWindow()
+        exe 'lgrep -r "'.a:pattern.'" '.curfile.str({'format': 'Edit'})
+        exe 'lw'
+        return
+    endif
     py import sys, vim
     exe 'python sys.path.insert(0, r"'.s:pyconsole_vim_location.'")'
     py import grepfind
